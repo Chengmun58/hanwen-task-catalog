@@ -1,3 +1,4 @@
+import { useAuth } from "@/_core/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { 
   Flame, 
@@ -54,6 +55,10 @@ interface Lesson {
 }
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [activeTab, setActiveTab] = useState<"notes" | "tone" | "eraser">("notes");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedLesson, setSelectedLesson] = useState<Lesson>(lessonsData[0] as Lesson);
