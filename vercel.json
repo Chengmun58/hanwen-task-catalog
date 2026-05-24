@@ -1,12 +1,12 @@
 {
+  "framework": "vite",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm exec vite build",
+  "outputDirectory": "dist/public",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }
