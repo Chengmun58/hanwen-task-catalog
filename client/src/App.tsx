@@ -2,7 +2,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import KoreanGenzPage from "./pages/KoreanGenzPage";
 import AIKoreanEnginePage from "./pages/AIKoreanEnginePage";
-import KoreanOSPage from "./pages/KoreanOSPage";
+import KoreanOSPolishedPage from "./pages/KoreanOSPolishedPage";
 
 function Router() {
   return (
@@ -10,7 +10,7 @@ function Router() {
       <Route path={"/"} component={AIKoreanEnginePage} />
       <Route path={"/ai-korean"} component={AIKoreanEnginePage} />
       <Route path={"/korean-genz"} component={KoreanGenzPage} />
-      <Route path={"/routines"} component={KoreanOSPage} />
+      <Route path={"/routines"} component={KoreanOSPolishedPage} />
       <Route component={AIKoreanEnginePage} />
     </Switch>
   );
