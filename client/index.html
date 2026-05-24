@@ -4,11 +4,20 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>3개월 한국인화 지옥 훈련소 NATIVE MODE</title>    
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0F0F0F" />
+    <meta name="background-color" content="#FDFCF9" />
+    <meta name="description" content="Private Korean AI OS for daily Korean immersion, roleplay, shadowing, routines, TTS, and saved Korean expressions." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Korean AI OS" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Private Korean AI OS</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/icons/korean-ai-icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/korean-ai-icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Primary: Pretendard-style via Noto Sans KR for UI, Noto Serif KR for editorial headings -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;600;700;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <style>
       :root {
@@ -20,16 +29,16 @@
         font-family: var(--font-sans);
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+        overscroll-behavior-y: none;
+        background: #FDFCF9;
       }
-      /* Korean serif for editorial display text */
       .font-serif-ko {
         font-family: var(--font-serif-ko);
       }
-      /* Smooth scroll */
       html {
         scroll-behavior: smooth;
+        background: #FDFCF9;
       }
-      /* Custom scrollbar */
       ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
@@ -39,9 +48,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
   </body>
 </html>
