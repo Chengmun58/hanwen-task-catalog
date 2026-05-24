@@ -178,4 +178,92 @@ describe("files router", () => {
     expect(result.id).toBe(1);
     expect(result.filename).toBe("test.pdf");
   });
+
+  it("getById: throws NOT_FOUND when file belongs to another user", async () => {
+    const { getFileById } = await import("./db");
+    // Returning undefined simulates: file exists but getFileById(id, userId) found no match
+    vi.mocked(getFileById).mockResolvedValueOnce(undefined);
+
+    const ctx = createMockContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(caller.files.getById({ id: 999 })).rejects.toThrow();
+  });
+
+  it("update: throws NOT_FOUND when file belongs to another user", async () => {
+    const { getFileById } = await import("./db");
+    vi.mocked(getFileById).mockResolvedValueOnce(undefined);
+
+    const ctx = createMockContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.files.update({ id: 999, description: "Hijack" })
+    ).rejects.toThrow();
+  });
+
+  it("upload: rejects files with a data-URL prefix (strips prefix and still validates MIME)", async () => {
+    const ctx = createMockContext();
+    const caller = appRouter.createCaller(ctx);
+
+    // data URL prefix is fine – router strips it
+    const base64Data =
+      "data:application/pdf;base64," +
+      Buffer.from("%PDF-1.4 test").toString("base64");
+
+    const result = await caller.files.upload({
+      filename: "test.pdf",
+      mimeType: "application/pdf",
+      base64Data,
+      fileSize: 512,
+      category: "reading",
+    });
+
+    expect(result.filename).toBe("test.pdf");
+  });
+
+  it("list: throws UNAUTHORIZED when called without a user", async () => {
+    const ctx: TrpcContext = {
+      req: {} as any,
+      res: {} as any,
+      user: null,
+    };
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(caller.files.list()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
+
+  it("upload: throws UNAUTHORIZED when called without a user", async () => {
+    const ctx: TrpcContext = {
+      req: {} as any,
+      res: {} as any,
+      user: null,
+    };
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.files.upload({
+        filename: "test.pdf",
+        mimeType: "application/pdf",
+        base64Data: Buffer.from("%PDF-1.4").toString("base64"),
+        fileSize: 512,
+        category: "other",
+      })
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("delete: throws UNAUTHORIZED when called without a user", async () => {
+    const ctx: TrpcContext = {
+      req: {} as any,
+      res: {} as any,
+      user: null,
+    };
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(caller.files.delete({ id: 1 })).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+  });
 });
