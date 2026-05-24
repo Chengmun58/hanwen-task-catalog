@@ -15,9 +15,10 @@ import {
   PenLine,
   FolderOpen,
   X,
-  CheckCircle2,
   AlertCircle,
   Loader2,
+  CloudUpload,
+  Search,
 } from "lucide-react";
 import {
   Dialog,
@@ -28,7 +29,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -38,19 +38,22 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import DashboardLayout from "@/components/DashboardLayout";
 
 type Category = "vocabulary" | "grammar" | "listening" | "reading" | "other";
 
-const CATEGORY_LABELS: Record<Category, { label: string; icon: React.ElementType; color: string }> = {
-  vocabulary: { label: "词汇 (어휘)", icon: BookOpen, color: "bg-[#FFB100] text-[#1E1E1E]" },
-  grammar: { label: "语法 (문법)", icon: PenLine, color: "bg-[#FF6B35] text-white" },
-  listening: { label: "听力 (듣기)", icon: Headphones, color: "bg-[#2EC4B6] text-[#1E1E1E]" },
-  reading: { label: "阅读 (읽기)", icon: BookOpen, color: "bg-[#1E1E1E] text-white" },
-  other: { label: "其他 (기타)", icon: FolderOpen, color: "bg-gray-200 text-[#1E1E1E]" },
+const CATEGORY_CONFIG: Record<Category, {
+  label: string; labelKo: string; icon: React.ElementType;
+  color: string; bgColor: string;
+}> = {
+  vocabulary: { label: "词汇",   labelKo: "어휘",  icon: BookOpen,   color: "text-[#C9A84C]",  bgColor: "bg-[#FFFBF0] border-[#C9A84C]/30" },
+  grammar:    { label: "语法",   labelKo: "문법",  icon: PenLine,    color: "text-[#E8432D]",  bgColor: "bg-[#FFF5F5] border-[#E8432D]/30" },
+  listening:  { label: "听力",   labelKo: "듣기",  icon: Headphones, color: "text-[#2EC4B6]",  bgColor: "bg-[#F0FAFA] border-[#2EC4B6]/30" },
+  reading:    { label: "阅读",   labelKo: "읽기",  icon: BookOpen,   color: "text-[#0F0F0F]",  bgColor: "bg-[#F7F4EE] border-[#E8E5DF]" },
+  other:      { label: "其他",   labelKo: "기타",  icon: FolderOpen, color: "text-[#AAA]",     bgColor: "bg-[#F7F4EE] border-[#E8E5DF]" },
 };
 
-const MAX_FILE_SIZE = 16 * 1024 * 1024; // 16MB
-
+const MAX_FILE_SIZE = 16 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = [
   ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp",
   ".mp3", ".wav", ".ogg", ".m4a", ".mp4",
@@ -84,48 +87,44 @@ export default function FilesPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<{ name: string; progress: "uploading" | "done" | "error" }[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<Category | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialogId, setDeleteDialogId] = useState<number | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingCategory, setPendingCategory] = useState<Category>("other");
   const [pendingDescription, setPendingDescription] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const utils = trpc.useUtils();
 
-  const { data: files, isLoading } = trpc.files.list.useQuery();
+  const { data: filesData, isLoading } = trpc.files.list.useQuery();
+  type FileItem = NonNullable<typeof filesData>[number];
+  const files: FileItem[] = Array.isArray(filesData) ? filesData : (filesData as any)?.files ?? [];
 
   const uploadMutation = trpc.files.upload.useMutation({
     onSuccess: () => {
       utils.files.list.invalidate();
-      toast.success("文件上传成功！파일 업로드 완료! 🎉");
+      toast.success("파일 업로드 완료! 文件上传成功！🎉");
     },
-    onError: (err) => {
-      toast.error(`上传失败：${err.message}`);
-    },
+    onError: (err) => toast.error(`업로드 실패: ${err.message}`),
   });
 
   const deleteMutation = trpc.files.delete.useMutation({
     onSuccess: () => {
       utils.files.list.invalidate();
-      toast.success("文件已删除 파일 삭제 완료");
+      toast.success("파일 삭제 완료 · 文件已删除");
       setDeleteDialogId(null);
     },
-    onError: (err) => {
-      toast.error(`删除失败：${err.message}`);
-    },
+    onError: (err) => toast.error(`삭제 실패: ${err.message}`),
   });
 
   const handleFileSelect = useCallback((file: File) => {
-    // Validate size
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(`文件过大（最大 16MB）：${file.name}`);
+      toast.error(`파일이 너무 큽니다（最大 16MB）：${file.name}`);
       return;
     }
-    // Validate extension
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      toast.error(`不支持的文件格式：${ext}`);
+      toast.error(`지원하지 않는 형식：${ext}`);
       return;
     }
     setPendingFile(file);
@@ -136,10 +135,8 @@ export default function FilesPage() {
 
   const handleUploadConfirm = async () => {
     if (!pendingFile) return;
-
     setUploadDialogOpen(false);
     setUploadingFiles(prev => [...prev, { name: pendingFile.name, progress: "uploading" }]);
-
     try {
       const base64Data = await fileToBase64(pendingFile);
       await uploadMutation.mutateAsync({
@@ -164,7 +161,6 @@ export default function FilesPage() {
         setUploadingFiles(prev => prev.filter(f => f.name !== pendingFile.name));
       }, 3000);
     }
-
     setPendingFile(null);
   };
 
@@ -175,53 +171,73 @@ export default function FilesPage() {
     if (file) handleFileSelect(file);
   }, [handleFileSelect]);
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
+  const filteredFiles = files.filter(f => {
+    const matchCat = selectedCategory === "all" || f.category === selectedCategory;
+    const matchSearch = !searchQuery || f.filename.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
-  const handleDragLeave = () => setIsDragOver(false);
-
-  const filteredFiles = files?.filter(f =>
-    selectedCategory === "all" || f.category === selectedCategory
-  ) ?? [];
-
-  const categoryCounts = files?.reduce((acc, f) => {
+  const categoryCounts = files.reduce((acc, f) => {
     const cat = f.category as Category;
     acc[cat] = (acc[cat] ?? 0) + 1;
     return acc;
-  }, {} as Partial<Record<Category, number>>) ?? {};
+  }, {} as Partial<Record<Category, number>>);
+
+  const totalSize = files.reduce((a, f) => a + f.fileSize, 0);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F5] text-[#1E1E1E] font-sans pb-12">
-      {/* Header */}
-      <header className="border-b-4 border-[#1E1E1E] bg-[#2EC4B6] p-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[#FFB100] rounded-full translate-x-16 -translate-y-16 border-4 border-[#1E1E1E] z-0" />
-        <div className="relative z-10 max-w-6xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-[#1E1E1E] text-white px-3 py-1 text-xs font-black uppercase tracking-widest mb-3 border-2 border-white shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
-            <FolderOpen className="w-3.5 h-3.5 text-[#FFB100]" /> 학습 자료 보관함
-          </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-            学习资料管理
-          </h1>
-          <p className="text-base font-bold text-[#1E1E1E] mt-1">
-            上传并管理你的韩语学习资料（PDF、音频、图片等）
-          </p>
-        </div>
-      </header>
+    <DashboardLayout>
+      <div className="max-w-5xl mx-auto space-y-6">
 
-      <div className="max-w-6xl mx-auto px-4 mt-8 space-y-8">
+        {/* Page Header */}
+        <div className="relative overflow-hidden bg-[#0F0F0F] rounded-2xl">
+          <div className="absolute inset-0 flex items-center justify-end pointer-events-none overflow-hidden pr-6">
+            <span
+              className="text-[10rem] font-black text-white leading-none select-none"
+              style={{ opacity: 0.04, fontFamily: "'Noto Serif KR', serif" }}
+            >
+              자
+            </span>
+          </div>
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#2EC4B6] via-[#C9A84C] to-[#E8432D]" />
+          <div className="relative z-10 px-6 py-8">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-1.5 bg-[#2EC4B6]/10 border border-[#2EC4B6]/20 text-[#2EC4B6] px-3 py-1 rounded-full text-xs font-semibold">
+                <FolderOpen className="w-3 h-3" />
+                자료실 · 学习资料库
+              </div>
+            </div>
+            <h1
+              className="text-3xl md:text-4xl font-black text-white leading-tight"
+              style={{ fontFamily: "'Noto Serif KR', serif" }}
+            >
+              자료실
+            </h1>
+            <p className="text-white/50 text-sm mt-1">Study Materials Archive · 学习资料管理</p>
+
+            <div className="flex flex-wrap gap-6 mt-5 pt-5 border-t border-white/10">
+              <div>
+                <div className="text-xl font-black text-white">{files.length}</div>
+                <div className="text-[10px] text-white/40 font-medium">전체 파일 · 全部文件</div>
+              </div>
+              <div>
+                <div className="text-xl font-black text-white">{formatFileSize(totalSize)}</div>
+                <div className="text-[10px] text-white/40 font-medium">총 용량 · 总大小</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Upload Zone */}
         <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+          onDragLeave={() => setIsDragOver(false)}
           onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-4 border-dashed border-[#1E1E1E] p-10 text-center cursor-pointer transition-all select-none ${
+          className={`card-luxury rounded-2xl p-8 text-center cursor-pointer transition-all border-2 border-dashed ${
             isDragOver
-              ? "bg-[#FFB100] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] -translate-y-1"
-              : "bg-white hover:bg-[#FAF9F5] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5"
+              ? "border-[#E8432D] bg-[#E8432D]/5 scale-[1.01]"
+              : "border-[#E8E5DF] hover:border-[#C9A84C] hover:bg-[#FFFBF0]/50"
           }`}
         >
           <input
@@ -229,154 +245,151 @@ export default function FilesPage() {
             type="file"
             className="hidden"
             accept={ALLOWED_EXTENSIONS.join(",")}
-            onChange={e => {
+            onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFileSelect(file);
               e.target.value = "";
             }}
           />
-          <div className="flex flex-col items-center gap-4">
-            <div className={`w-16 h-16 border-4 border-[#1E1E1E] flex items-center justify-center transition-colors ${isDragOver ? "bg-[#1E1E1E]" : "bg-[#FFB100]"}`}>
-              <Upload className={`w-8 h-8 ${isDragOver ? "text-[#FFB100]" : "text-[#1E1E1E]"}`} />
-            </div>
-            <div>
-              <p className="text-lg font-black">
-                {isDragOver ? "松开以上传文件 파일을 놓으세요!" : "拖拽文件到此处，或点击选择文件"}
-              </p>
-              <p className="text-sm font-bold text-[#666] mt-1">
-                支持 PDF、图片、音频、Word 文档 · 最大 16MB
-              </p>
-              <p className="text-xs text-[#888] mt-1">
-                {ALLOWED_EXTENSIONS.join("  ")}
-              </p>
-            </div>
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 transition-all ${
+            isDragOver ? "bg-[#E8432D] scale-110" : "bg-[#F7F4EE]"
+          }`}>
+            <CloudUpload className={`w-7 h-7 ${isDragOver ? "text-white" : "text-[#AAA]"}`} />
           </div>
+          <div className="font-black text-base text-[#0F0F0F]">
+            {isDragOver ? "파일을 여기에 놓으세요! · 松开即可上传！" : "파일을 드래그하거나 클릭하여 업로드"}
+          </div>
+          <div className="text-xs text-[#AAA] mt-1 font-medium">
+            拖拽或点击上传 · PDF, 图片, 音频, Word 等 · 최대 16MB
+          </div>
+
+          {uploadingFiles.length > 0 && (
+            <div className="mt-4 space-y-2 text-left">
+              {uploadingFiles.map((f) => (
+                <div key={f.name} className="flex items-center gap-2 bg-[#F7F4EE] rounded-xl px-3 py-2">
+                  {f.progress === "uploading" && <Loader2 className="w-4 h-4 animate-spin text-[#E8432D] flex-shrink-0" />}
+                  {f.progress === "done" && <span className="text-emerald-500 text-sm flex-shrink-0">✓</span>}
+                  {f.progress === "error" && <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />}
+                  <span className="text-xs font-medium text-[#555] truncate">{f.name}</span>
+                  <span className="text-[10px] text-[#AAA] ml-auto flex-shrink-0">
+                    {f.progress === "uploading" ? "업로드 중..." : f.progress === "done" ? "완료!" : "실패"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Uploading Progress */}
-        {uploadingFiles.length > 0 && (
-          <div className="space-y-2">
-            {uploadingFiles.map(f => (
-              <div key={f.name} className={`border-2 border-[#1E1E1E] p-3 flex items-center gap-3 ${
-                f.progress === "done" ? "bg-[#D1F7D1]" : f.progress === "error" ? "bg-[#FFD1D1]" : "bg-white"
-              }`}>
-                {f.progress === "uploading" && <Loader2 className="w-4 h-4 animate-spin text-[#FF6B35]" />}
-                {f.progress === "done" && <CheckCircle2 className="w-4 h-4 text-green-600" />}
-                {f.progress === "error" && <AlertCircle className="w-4 h-4 text-red-500" />}
-                <span className="text-sm font-bold truncate flex-1">{f.name}</span>
-                <span className="text-xs font-black text-[#888]">
-                  {f.progress === "uploading" ? "上传中..." : f.progress === "done" ? "完成！" : "失败"}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setSelectedCategory("all")}
-            className={`px-4 py-2 text-sm font-black border-2 border-[#1E1E1E] transition-all ${
-              selectedCategory === "all"
-                ? "bg-[#1E1E1E] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                : "bg-white hover:bg-[#FAF9F5]"
-            }`}
-          >
-            全部 (전체) {files?.length ? `(${files.length})` : ""}
-          </button>
-          {(Object.entries(CATEGORY_LABELS) as [Category, typeof CATEGORY_LABELS[Category]][]).map(([key, cat]) => (
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-wrap gap-2 flex-1">
             <button
-              key={key}
-              onClick={() => setSelectedCategory(key)}
-              className={`px-4 py-2 text-sm font-black border-2 border-[#1E1E1E] transition-all flex items-center gap-1.5 ${
-                selectedCategory === key
-                  ? `${cat.color} shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]`
-                  : "bg-white hover:bg-[#FAF9F5]"
+              onClick={() => setSelectedCategory("all")}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                selectedCategory === "all"
+                  ? "bg-[#0F0F0F] text-white"
+                  : "bg-white border border-[#E8E5DF] text-[#666] hover:border-[#CCC]"
               }`}
             >
-              <cat.icon className="w-3.5 h-3.5" />
-              {cat.label}
-              {categoryCounts[key] ? ` (${categoryCounts[key]})` : ""}
+              전체 · 全部
+              <span className="ml-1 opacity-60">({files.length})</span>
             </button>
-          ))}
+            {(Object.entries(CATEGORY_CONFIG) as [Category, typeof CATEGORY_CONFIG[Category]][]).map(([key, cat]) => (
+              <button
+                key={key}
+                onClick={() => setSelectedCategory(key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  selectedCategory === key
+                    ? "bg-[#0F0F0F] text-white"
+                    : "bg-white border border-[#E8E5DF] text-[#666] hover:border-[#CCC]"
+                }`}
+              >
+                <cat.icon className="w-3 h-3" />
+                {cat.labelKo} · {cat.label}
+                {(categoryCounts[key] ?? 0) > 0 && (
+                  <span className="opacity-60">({categoryCounts[key]})</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 bg-white border border-[#E8E5DF] rounded-xl px-3 py-2 sm:w-52">
+            <Search className="w-3.5 h-3.5 text-[#AAA] flex-shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="파일 검색... · 搜索文件"
+              className="bg-transparent text-xs font-medium text-[#333] placeholder:text-[#CCC] focus:outline-none w-full"
+            />
+          </div>
         </div>
 
         {/* Files Grid */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#FF6B35]" />
-            <span className="ml-3 font-black text-[#888]">加载中... 로딩 중</span>
+          <div className="flex items-center justify-center py-16 card-luxury rounded-2xl">
+            <Loader2 className="w-7 h-7 animate-spin text-[#E8432D]" />
+            <span className="ml-3 font-bold text-[#888]">파일 로딩 중... · 加载中...</span>
           </div>
         ) : filteredFiles.length === 0 ? (
-          <div className="bg-white border-4 border-[#1E1E1E] p-12 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="w-16 h-16 bg-[#FAF9F5] border-2 border-[#1E1E1E] flex items-center justify-center mx-auto mb-4">
-              <FolderOpen className="w-8 h-8 text-[#888]" />
+          <div className="card-luxury rounded-2xl p-16 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#F7F4EE] flex items-center justify-center mx-auto mb-4">
+              <FolderOpen className="w-8 h-8 text-[#CCC]" />
             </div>
-            <h3 className="text-xl font-black text-[#888]">
-              {selectedCategory === "all" ? "还没有上传任何文件" : `该分类暂无文件`}
-            </h3>
-            <p className="text-sm font-bold text-[#AAA] mt-2">
-              点击上方区域或拖拽文件开始上传学习资料
+            <h3 className="text-xl font-black text-[#AAA]">파일 없음 · 暂无文件</h3>
+            <p className="text-sm text-[#CCC] mt-2 font-medium">
+              {searchQuery
+                ? "검색 결과가 없습니다 · 未找到匹配文件"
+                : "위의 업로드 영역에 파일을 드래그하세요 · 将文件拖拽到上方区域"}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredFiles.map(file => {
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredFiles.map((file, idx) => {
               const FileIcon = getFileIcon(file.mimeType);
-              const catInfo = CATEGORY_LABELS[file.category as Category] ?? CATEGORY_LABELS.other;
+              const catConfig = CATEGORY_CONFIG[file.category as Category] ?? CATEGORY_CONFIG.other;
+              const CatIcon = catConfig.icon;
               return (
                 <div
                   key={file.id}
-                  className="bg-white border-4 border-[#1E1E1E] p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex flex-col gap-3"
+                  className="card-luxury rounded-xl overflow-hidden"
+                  style={{ animationDelay: `${idx * 40}ms` }}
                 >
-                  {/* File Header */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 bg-[#FAF9F5] border-2 border-[#1E1E1E] flex items-center justify-center shrink-0">
-                      <FileIcon className="w-6 h-6 text-[#FF6B35]" />
+                  <div className="p-4 flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-[#F7F4EE] flex items-center justify-center flex-shrink-0">
+                      <FileIcon className="w-5 h-5 text-[#888]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-sm leading-tight truncate" title={file.filename}>
-                        {file.filename}
-                      </h4>
-                      <p className="text-xs text-[#888] font-bold mt-0.5">
-                        {formatFileSize(file.fileSize)} · {new Date(file.createdAt).toLocaleDateString("zh-CN")}
-                      </p>
+                      <div className="font-bold text-sm text-[#0F0F0F] truncate">{file.filename}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${catConfig.bgColor} ${catConfig.color}`}>
+                          <CatIcon className="w-2.5 h-2.5" />
+                          {catConfig.labelKo} · {catConfig.label}
+                        </span>
+                        <span className="text-[10px] text-[#AAA] font-medium">{formatFileSize(file.fileSize)}</span>
+                      </div>
+                      {file.description && (
+                        <p className="text-xs text-[#888] mt-1.5 line-clamp-1">{file.description}</p>
+                      )}
+                      <div className="text-[10px] text-[#CCC] mt-1">
+                        {new Date(file.createdAt).toLocaleDateString("ko-KR")}
+                      </div>
                     </div>
                   </div>
-
-                  {/* Category Badge */}
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-black px-2 py-0.5 border border-[#1E1E1E] ${catInfo.color}`}>
-                      {catInfo.label}
-                    </span>
-                    <span className="text-[10px] font-bold text-[#888] truncate">
-                      {file.mimeType}
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  {file.description && (
-                    <p className="text-xs font-medium text-[#555] border-t border-dashed border-[#DDD] pt-2 line-clamp-2">
-                      {file.description}
-                    </p>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-2 mt-auto pt-2 border-t-2 border-[#1E1E1E]">
+                  <div className="px-4 pb-4 flex gap-2">
                     <a
                       href={file.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-[#FFB100] border-2 border-[#1E1E1E] text-xs font-black hover:bg-[#FF6B35] hover:text-white transition-colors active:scale-95"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#F7F4EE] hover:bg-[#0F0F0F] hover:text-white text-[#555] text-xs font-bold transition-all"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      查看/下载
+                      다운로드 · 下载
                     </a>
                     <button
                       onClick={() => setDeleteDialogId(file.id)}
-                      className="px-3 py-2 bg-white border-2 border-[#1E1E1E] text-xs font-black hover:bg-[#FFD1D1] transition-colors active:scale-95"
+                      className="px-3 py-2 rounded-xl bg-[#F7F4EE] hover:bg-red-50 hover:text-red-500 text-[#AAA] transition-all"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -388,64 +401,58 @@ export default function FilesPage() {
 
       {/* Upload Confirm Dialog */}
       <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-        <DialogContent className="border-4 border-[#1E1E1E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] rounded-none max-w-md">
+        <DialogContent className="max-w-md rounded-2xl border border-[#E8E5DF]">
           <DialogHeader>
-            <DialogTitle className="font-black text-xl">上传文件设置</DialogTitle>
-            <DialogDescription className="text-sm font-bold text-[#666]">
+            <DialogTitle className="font-black text-xl">파일 업로드 설정 · 上传设置</DialogTitle>
+            <DialogDescription className="text-sm font-medium text-[#888]">
               {pendingFile?.name} · {pendingFile ? formatFileSize(pendingFile.size) : ""}
             </DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label className="font-black text-sm">分类 (카테고리)</Label>
-              <Select
-                value={pendingCategory}
-                onValueChange={(v) => setPendingCategory(v as Category)}
-              >
-                <SelectTrigger className="border-2 border-[#1E1E1E] rounded-none font-bold">
+              <Label className="font-bold text-sm">카테고리 · 分类</Label>
+              <Select value={pendingCategory} onValueChange={(v) => setPendingCategory(v as Category)}>
+                <SelectTrigger className="rounded-xl border-[#E8E5DF] font-medium">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-2 border-[#1E1E1E] rounded-none">
-                  {(Object.entries(CATEGORY_LABELS) as [Category, typeof CATEGORY_LABELS[Category]][]).map(([key, cat]) => (
-                    <SelectItem key={key} value={key} className="font-bold">
-                      {cat.label}
+                <SelectContent className="rounded-xl">
+                  {(Object.entries(CATEGORY_CONFIG) as [Category, typeof CATEGORY_CONFIG[Category]][]).map(([key, cat]) => (
+                    <SelectItem key={key} value={key} className="font-medium">
+                      {cat.labelKo} · {cat.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
-              <Label className="font-black text-sm">备注说明（可选）</Label>
+              <Label className="font-bold text-sm">메모 · 备注（선택사항）</Label>
               <Textarea
                 value={pendingDescription}
                 onChange={e => setPendingDescription(e.target.value)}
-                placeholder="添加关于这个文件的说明..."
-                className="border-2 border-[#1E1E1E] rounded-none font-medium resize-none"
+                placeholder="이 파일에 대한 설명을 추가하세요... · 添加文件说明..."
+                className="rounded-xl border-[#E8E5DF] font-medium resize-none"
                 rows={3}
                 maxLength={1000}
               />
             </div>
           </div>
-
           <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => { setUploadDialogOpen(false); setPendingFile(null); }}
-              className="border-2 border-[#1E1E1E] rounded-none font-black"
+              className="rounded-xl font-bold"
             >
-              <X className="w-4 h-4 mr-1" /> 取消
+              <X className="w-4 h-4 mr-1" /> 취소 · 取消
             </Button>
             <Button
               onClick={handleUploadConfirm}
               disabled={uploadMutation.isPending}
-              className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white border-2 border-[#1E1E1E] rounded-none font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              className="bg-[#E8432D] hover:bg-[#D03020] text-white font-bold border-0 rounded-xl"
             >
               {uploadMutation.isPending ? (
-                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> 上传中...</>
+                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> 업로드 중...</>
               ) : (
-                <><Upload className="w-4 h-4 mr-1" /> 确认上传</>
+                <><Upload className="w-4 h-4 mr-1" /> 업로드 확인 · 确认上传</>
               )}
             </Button>
           </DialogFooter>
@@ -454,37 +461,35 @@ export default function FilesPage() {
 
       {/* Delete Confirm Dialog */}
       <Dialog open={deleteDialogId !== null} onOpenChange={() => setDeleteDialogId(null)}>
-        <DialogContent className="border-4 border-[#1E1E1E] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] rounded-none max-w-sm">
+        <DialogContent className="max-w-sm rounded-2xl border border-[#E8E5DF]">
           <DialogHeader>
             <DialogTitle className="font-black text-xl flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" /> 确认删除
+              <AlertCircle className="w-5 h-5 text-red-400" /> 삭제 확인 · 确认删除
             </DialogTitle>
-            <DialogDescription className="font-bold text-[#555]">
-              删除后无法恢复，确认要删除这个文件吗？
+            <DialogDescription className="font-medium text-[#666]">
+              삭제 후 복구할 수 없습니다. 이 파일을 삭제하시겠습니까?
+              <br />
+              <span className="text-xs text-[#AAA]">删除后无法恢复，确认删除此文件？</span>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogId(null)}
-              className="border-2 border-[#1E1E1E] rounded-none font-black"
-            >
-              取消
+            <Button variant="outline" onClick={() => setDeleteDialogId(null)} className="rounded-xl font-bold">
+              취소 · 取消
             </Button>
             <Button
               onClick={() => deleteDialogId !== null && deleteMutation.mutate({ id: deleteDialogId })}
               disabled={deleteMutation.isPending}
-              className="bg-red-500 hover:bg-red-600 text-white border-2 border-[#1E1E1E] rounded-none font-black"
+              className="bg-red-500 hover:bg-red-600 text-white font-bold border-0 rounded-xl"
             >
               {deleteMutation.isPending ? (
-                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> 删除中...</>
+                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> 삭제 중...</>
               ) : (
-                <><Trash2 className="w-4 h-4 mr-1" /> 确认删除</>
+                <><Trash2 className="w-4 h-4 mr-1" /> 삭제 확인 · 确认删除</>
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }
