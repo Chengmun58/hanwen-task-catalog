@@ -1,0 +1,19 @@
+{
+  "name": "Private Korean AI OS",
+  "short_name": "Korean AI",
+  "description": "Private Korean AI OS for daily Korean immersion, roleplay, shadowing, routines, TTS, and saved Korean expressions.",
+  "start_url": "/ai-korean",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FDFCF9",
+  "theme_color": "#0F0F0F",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "/icons/korean-ai-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
