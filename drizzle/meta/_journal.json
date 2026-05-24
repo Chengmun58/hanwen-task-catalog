@@ -8,6 +8,13 @@
       "when": 1779542376834,
       "tag": "0000_abnormal_inertia",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1779590820798,
+      "tag": "0001_smooth_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

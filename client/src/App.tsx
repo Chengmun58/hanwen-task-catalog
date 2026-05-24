@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import FilesPage from "./pages/FilesPage";
+import DailyContentPage from "./pages/DailyContentPage";
 import DashboardLayout from "./components/DashboardLayout";
 
 function Router() {
@@ -15,6 +16,11 @@ function Router() {
       <Route path={"/files"}>
         <DashboardLayout>
           <FilesPage />
+        </DashboardLayout>
+      </Route>
+      <Route path={"/daily"}>
+        <DashboardLayout>
+          <DailyContentPage />
         </DashboardLayout>
       </Route>
       <Route path={"/404"} component={NotFound} />

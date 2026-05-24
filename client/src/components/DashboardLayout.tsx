@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, FolderOpen, BookOpen } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, FolderOpen, BookOpen, Newspaper } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -29,6 +29,7 @@ import { Button } from "./ui/button";
 
 const menuItems = [
   { icon: BookOpen, label: "训练控制台 (훈련소)", path: "/" },
+  { icon: Newspaper, label: "每日内容 (매일 콘텐츠)", path: "/daily" },
   { icon: FolderOpen, label: "学习资料 (자료실)", path: "/files" },
 ];
 
