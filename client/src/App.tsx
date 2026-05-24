@@ -8,12 +8,14 @@ import Home from "./pages/Home";
 import FilesPage from "./pages/FilesPage";
 import DailyContentPage from "./pages/DailyContentPage";
 import ImmersionUpdates from "./pages/ImmersionUpdates";
+import KoreanGenzPage from "./pages/KoreanGenzPage";
 import DashboardLayout from "./components/DashboardLayout";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/korean-genz"} component={KoreanGenzPage} />
       <Route path={"/immersion-updates"} component={ImmersionUpdates} />
       <Route path={"/files"}>
         <DashboardLayout>
