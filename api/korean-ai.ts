@@ -5,7 +5,8 @@ type Feature =
   | "shadowing-trainer"
   | "grammar-corrector"
   | "situational-reply"
-  | "platform-mimic";
+  | "platform-mimic"
+  | "roleplay";
 
 type RequestBody = {
   feature?: Feature;
@@ -25,6 +26,7 @@ const ALLOWED_FEATURES: Feature[] = [
   "grammar-corrector",
   "situational-reply",
   "platform-mimic",
+  "roleplay",
 ];
 
 const featureLabels: Record<Feature, string> = {
@@ -35,6 +37,7 @@ const featureLabels: Record<Feature, string> = {
   "grammar-corrector": "Grammar Corrector",
   "situational-reply": "Situational Reply Generator",
   "platform-mimic": "YouTube / Instagram Style Mimic",
+  roleplay: "Korean Roleplay Conversation Partner",
 };
 
 function normalizeFeature(feature?: string): Feature {
@@ -55,6 +58,42 @@ function buildPrompt(body: RequestBody) {
   const tone = cleanText(body.tone || "natural Korean MZ but not cringe", MAX_CONTEXT_CHARS);
   const platform = cleanText(body.platform || "KakaoTalk / Instagram / YouTube / Theqoo depending on request", MAX_CONTEXT_CHARS);
   const situation = cleanText(body.situation || "daily conversation", MAX_CONTEXT_CHARS);
+
+  if (feature === "roleplay") {
+    return `You are a Korean native conversation partner for immersive Korean practice.
+
+Role / personality: ${tone}
+Platform / style: ${platform}
+Situation: ${situation}
+User message:
+${input}
+
+Return the answer in this exact structure:
+
+1. ROLEPLAY REPLY
+- Reply mainly in natural Korean as the selected role.
+- Keep it realistic, concise, and chat-like.
+- Do not sound like a textbook or teacher in this section.
+- Continue the conversation by asking one natural follow-up question.
+
+2. NATURALNESS NOTES
+- Explain in Chinese why the Korean sounds natural.
+- Mention tone, endings, emotional distance, and any slang.
+
+3. BETTER USER VERSION
+- If the user wrote Korean, rewrite their line into a more native Korean version.
+- If the user wrote Chinese/English, give 2 Korean versions they could have sent.
+
+4. SHADOWING LINES
+- Extract 3 short Korean lines from the roleplay reply for speaking practice.
+- Add Chinese meaning.
+
+Rules:
+- Stay in the role.
+- Keep Korean current and natural.
+- Avoid overusing emojis.
+- Do not make it overly childish unless the selected role asks for it.`;
+  }
 
   return `You are a native Korean language coach specializing in Korean Gen Z/MZ internet language, KakaoTalk replies, Instagram captions/comments, YouTube comments, Theqoo/forum tone, grammar correction, and shadowing practice.
 
@@ -104,6 +143,14 @@ Rules:
 
 function fallbackResponse(body: RequestBody) {
   const input = cleanText(body.input, MAX_INPUT_CHARS) || "오늘 너무 피곤해";
+  const feature = normalizeFeature(body.feature);
+  if (feature === "roleplay") {
+    return {
+      ok: true,
+      mode: "fallback-roleplay",
+      output: `1. ROLEPLAY REPLY\n아 진짜? 어제 술 마셨으면 오늘 좀 힘들겠다...\n그럼 해장국이나 따뜻한 국물 먹고 좀 쉬어. 지금 속은 괜찮아?\n\n2. NATURALNESS NOTES\n中文说明：这段像韩国朋友在 KakaoTalk 里自然关心对方，不会太正式。"좀 힘들겠다" 比 "매우 피곤하겠습니다" 自然很多。最后用 "속은 괜찮아?" 继续对话。\n\n3. BETTER USER VERSION\n- 어제 술 마셔서 오늘 너무 힘들어... 해장국 먹으면 좀 괜찮아질까?\n- 나 오늘 완전 숙취야ㅠㅠ 따뜻한 국물 먹고 싶다.\n\n4. SHADOWING LINES\n- 오늘 좀 힘들겠다. = 今天应该有点难受吧。\n- 따뜻한 국물 먹고 좀 쉬어. = 吃点热汤然后休息一下。\n- 지금 속은 괜찮아? = 现在胃还好吗？`,
+    };
+  }
   return {
     ok: true,
     mode: "fallback",
@@ -122,16 +169,8 @@ export default async function handler(req: any, res: any) {
   const rawBody = (req.body ?? {}) as RequestBody;
   const input = cleanText(rawBody.input, MAX_INPUT_CHARS + 1);
 
-  if (!input) {
-    return res.status(400).json({ ok: false, error: "Input is required" });
-  }
-
-  if (input.length > MAX_INPUT_CHARS) {
-    return res.status(413).json({
-      ok: false,
-      error: `Input is too long. Maximum ${MAX_INPUT_CHARS} characters allowed.`,
-    });
-  }
+  if (!input) return res.status(400).json({ ok: false, error: "Input is required" });
+  if (input.length > MAX_INPUT_CHARS) return res.status(413).json({ ok: false, error: `Input is too long. Maximum ${MAX_INPUT_CHARS} characters allowed.` });
 
   const body: RequestBody = {
     feature: normalizeFeature(rawBody.feature),
@@ -142,49 +181,32 @@ export default async function handler(req: any, res: any) {
   };
 
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return res.status(200).json(fallbackResponse(body));
-  }
+  if (!apiKey) return res.status(200).json(fallbackResponse(body));
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || "gpt-5.5",
         messages: [
-          {
-            role: "system",
-            content:
-              "You are a precise Korean native-language coach. Generate current, natural Korean and explain in Chinese. Avoid fake slang and avoid overdoing emojis.",
-          },
+          { role: "system", content: "You are a precise Korean native-language coach and roleplay partner. Generate current, natural Korean and explain in Chinese. Avoid fake slang and avoid overdoing emojis." },
           { role: "user", content: buildPrompt(body) },
         ],
-        temperature: 0.75,
-        max_completion_tokens: 1200,
+        temperature: body.feature === "roleplay" ? 0.85 : 0.75,
+        max_completion_tokens: body.feature === "roleplay" ? 900 : 1200,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      return res.status(200).json({
-        ...fallbackResponse(body),
-        mode: "fallback-openai-error",
-        openaiError: errorText.slice(0, 500),
-      });
+      return res.status(200).json({ ...fallbackResponse(body), mode: "fallback-openai-error", openaiError: errorText.slice(0, 500) });
     }
 
     const data = await response.json();
     const output = data?.choices?.[0]?.message?.content ?? "No output returned.";
-    return res.status(200).json({ ok: true, mode: "openai", output });
+    return res.status(200).json({ ok: true, mode: body.feature === "roleplay" ? "openai-roleplay" : "openai", output });
   } catch (error) {
-    return res.status(200).json({
-      ...fallbackResponse(body),
-      mode: "fallback-exception",
-      error: error instanceof Error ? error.message : String(error),
-    });
+    return res.status(200).json({ ...fallbackResponse(body), mode: "fallback-exception", error: error instanceof Error ? error.message : String(error) });
   }
 }
