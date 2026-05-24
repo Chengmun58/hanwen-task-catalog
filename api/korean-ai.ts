@@ -15,6 +15,18 @@ type RequestBody = {
   situation?: string;
 };
 
+const MAX_INPUT_CHARS = 1200;
+const MAX_CONTEXT_CHARS = 180;
+const ALLOWED_FEATURES: Feature[] = [
+  "reply-generator",
+  "tone-converter",
+  "mz-expression",
+  "shadowing-trainer",
+  "grammar-corrector",
+  "situational-reply",
+  "platform-mimic",
+];
+
 const featureLabels: Record<Feature, string> = {
   "reply-generator": "Korean Reply Generator",
   "tone-converter": "Native Tone Converter",
@@ -25,12 +37,24 @@ const featureLabels: Record<Feature, string> = {
   "platform-mimic": "YouTube / Instagram Style Mimic",
 };
 
+function normalizeFeature(feature?: string): Feature {
+  return ALLOWED_FEATURES.includes(feature as Feature) ? (feature as Feature) : "reply-generator";
+}
+
+function cleanText(value: unknown, maxLength: number) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 function buildPrompt(body: RequestBody) {
-  const feature = body.feature ?? "reply-generator";
-  const input = String(body.input ?? "").trim();
-  const tone = String(body.tone ?? "natural Korean MZ but not cringe").trim();
-  const platform = String(body.platform ?? "KakaoTalk / Instagram / YouTube / Theqoo depending on request").trim();
-  const situation = String(body.situation ?? "daily conversation").trim();
+  const feature = normalizeFeature(body.feature);
+  const input = cleanText(body.input, MAX_INPUT_CHARS);
+  const tone = cleanText(body.tone || "natural Korean MZ but not cringe", MAX_CONTEXT_CHARS);
+  const platform = cleanText(body.platform || "KakaoTalk / Instagram / YouTube / Theqoo depending on request", MAX_CONTEXT_CHARS);
+  const situation = cleanText(body.situation || "daily conversation", MAX_CONTEXT_CHARS);
 
   return `You are a native Korean language coach specializing in Korean Gen Z/MZ internet language, KakaoTalk replies, Instagram captions/comments, YouTube comments, Theqoo/forum tone, grammar correction, and shadowing practice.
 
@@ -79,7 +103,7 @@ Rules:
 }
 
 function fallbackResponse(body: RequestBody) {
-  const input = String(body.input ?? "").trim() || "오늘 너무 피곤해";
+  const input = cleanText(body.input, MAX_INPUT_CHARS) || "오늘 너무 피곤해";
   return {
     ok: true,
     mode: "fallback",
@@ -88,14 +112,34 @@ function fallbackResponse(body: RequestBody) {
 }
 
 export default async function handler(req: any, res: any) {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-AI-Input-Limit", String(MAX_INPUT_CHARS));
+
   if (req.method !== "POST") {
     return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  const body = (req.body ?? {}) as RequestBody;
-  if (!body.input || String(body.input).trim().length < 1) {
+  const rawBody = (req.body ?? {}) as RequestBody;
+  const input = cleanText(rawBody.input, MAX_INPUT_CHARS + 1);
+
+  if (!input) {
     return res.status(400).json({ ok: false, error: "Input is required" });
   }
+
+  if (input.length > MAX_INPUT_CHARS) {
+    return res.status(413).json({
+      ok: false,
+      error: `Input is too long. Maximum ${MAX_INPUT_CHARS} characters allowed.`,
+    });
+  }
+
+  const body: RequestBody = {
+    feature: normalizeFeature(rawBody.feature),
+    input,
+    tone: cleanText(rawBody.tone, MAX_CONTEXT_CHARS),
+    platform: cleanText(rawBody.platform, MAX_CONTEXT_CHARS),
+    situation: cleanText(rawBody.situation, MAX_CONTEXT_CHARS),
+  };
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -120,6 +164,7 @@ export default async function handler(req: any, res: any) {
           { role: "user", content: buildPrompt(body) },
         ],
         temperature: 0.75,
+        max_completion_tokens: 1200,
       }),
     });
 
