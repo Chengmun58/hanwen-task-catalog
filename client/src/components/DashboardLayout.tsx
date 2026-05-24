@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LogOut, PanelLeft, FolderOpen, BookOpen, Newspaper, Flame } from "lucide-react";
+import { LogOut, PanelLeft, FolderOpen, BookOpen, Newspaper, Flame, Sparkles } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -34,6 +34,13 @@ const menuItems = [
     labelSub: "训练控制台",
     path: "/",
     badge: null,
+  },
+  {
+    icon: Sparkles,
+    label: "몰입 업데이트",
+    labelSub: "沉浸训练更新",
+    path: "/immersion-updates",
+    badge: "LIVE",
   },
   {
     icon: Newspaper,
