@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "wouter";
 import {
   Bot,
   CheckCircle2,
@@ -183,7 +184,7 @@ export default function AIKoreanEnginePage() {
       <header className="sticky top-0 z-30 border-b border-[#E8E5DF] bg-[#0F0F0F]/95 text-white backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
           <div><div className="mb-1 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] font-black text-white/60"><Bot className="h-3.5 w-3.5 text-[#C9A84C]" />Private Korean Sense OS</div><h1 className="text-xl font-black leading-tight md:text-2xl">AI 한국어 원어민 감각 생성기</h1><p className="mt-1 text-xs font-bold text-white/45">生成 · 听 · 跟读 · 收藏 · 反复沉浸</p></div>
-          <div className="flex flex-wrap gap-2"><a href="/korean-genz" className="rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10">GenZ Library</a><button onClick={newChat} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10"><RefreshCw className="h-3.5 w-3.5" />New Chat</button><button onClick={clearMemory} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10"><Trash2 className="h-3.5 w-3.5" />Clear</button></div>
+          <div className="flex flex-wrap gap-2"><Link to="/korean-genz" className="rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10">GenZ Library</Link><button onClick={newChat} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10"><RefreshCw className="h-3.5 w-3.5" />New Chat</button><button onClick={clearMemory} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10"><Trash2 className="h-3.5 w-3.5" />Clear</button></div>
         </div>
       </header>
 
