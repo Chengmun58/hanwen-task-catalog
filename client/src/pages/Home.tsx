@@ -118,7 +118,7 @@ export default function Home() {
       id: "e1",
       textbook: "한국말을 잘 못합니다.",
       native: "한국어 아직 응애 수준임 ㅠ",
-      explanation: "教科书式表达太生硬，说自己还是'婴儿（응애）'阶段，既可爱又接地气，瞬间拉近距离！",
+      explanation: "教科书式表达太生硬。'응애 수준' 是亲近关系里可用的可爱网感说法，表示自己还在超初级阶段。正式一点可以说：나 아직 한국어 초보예요.",
       tags: ["MZ口语", "超高频"]
     },
     {
@@ -145,9 +145,9 @@ export default function Home() {
     {
       id: "e5",
       textbook: "그 소식은 정말 충격적입니다.",
-      native: "헐 진짜 뇌절 오네;;",
-      explanation: "用 '헐' 表示震惊，'뇌절' (脑回路断线/无语) 表达对荒谬消息的真实无力感，配上两个分号 ';;' 绝了。",
-      tags: ["网冲必备", "无语瞬间"]
+      native: "헐 이건 좀 선 넘었는데;;",
+      explanation: "用 '헐' 表示震惊，'선 넘었다' 表示行为或情况已经过界、太过分。比 '충격적입니다' 更像真实聊天里的无语反应。",
+      tags: ["网感表达", "无语瞬间"]
     }
   ];
 
@@ -201,10 +201,10 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 bg-[#E8432D]/10 border border-[#E8432D]/30 text-[#E8432D] px-3 py-1 rounded-full text-xs font-semibold tracking-wide">
                   <Flame className="w-3 h-3" />
-                  NATIVE MODE · 원어민 모드
+                  NATIVE MODE · 원어민 감각 훈련
                 </div>
                 <div className="h-px w-12 bg-white/20" />
-                <span className="text-white/40 text-xs font-medium tracking-widest uppercase">지옥 훈련소</span>
+                <span className="text-white/40 text-xs font-medium tracking-widest uppercase">몰입 훈련소</span>
               </div>
 
               {/* Main heading */}
@@ -213,19 +213,19 @@ export default function Home() {
                   3개월
                 </h1>
                 <h1 className="ko-serif text-5xl md:text-7xl font-black leading-[0.9] tracking-tight">
-                  <span className="text-gradient-brand">한국인화</span>
+                  <span className="text-gradient-brand">원어민 감각 장착</span>
                 </h1>
                 <p className="text-white/50 text-sm md:text-base font-medium mt-3 tracking-wide">
-                  3-Month Korean Native Mastery Console · 三个月韩国人化地狱训练所
+                  MZ 표현부터 대화 감각까지, 진짜 한국어처럼 익히는 몰입 훈련 · 从 MZ 表达到聊天语感，训练真正像韩国人一样使用韩语
                 </p>
               </div>
 
               {/* Stats row */}
               <div className="flex flex-wrap gap-4 mt-2">
                 {[
-                  { ko: "비밀 노트", zh: "语感秘籍", value: `${lessonsData.length}편` },
+                  { ko: "감각 노트", zh: "语感秘籍", value: `${lessonsData.length}편` },
                   { ko: "MZ 표현", zh: "MZ词汇", value: "50+" },
-                  { ko: "훈련 모드", zh: "训练模式", value: "3가지" },
+                  { ko: "실전 훈련", zh: "训练模式", value: "3가지" },
                 ].map((stat) => (
                   <div key={stat.ko} className="flex flex-col">
                     <span className="text-2xl font-black text-white">{stat.value}</span>
@@ -257,10 +257,10 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-white/60 text-xs leading-relaxed border-t border-white/10 pt-3">
-                  "별로 설명 필요 없어요. 그냥 느끼고 따라 하세요. 3개월이면 충분해요."
+                  "설명은 길게 필요 없어요. 그냥 듣고, 느끼고, 따라 하면 돼요. 3개월이면 충분해요."
                 </p>
                 <p className="text-white/30 text-[10px] mt-1 italic">
-                  "不需要太多解释，感受并跟着做。3个月足够了。"
+                  "不需要太多解释，听、感受并跟着做。3个月足够了。"
                 </p>
               </div>
             </div>
@@ -304,7 +304,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-[#C9A84C]" />
                 <span className="text-white font-bold text-sm tracking-wide">오늘 미션</span>
-                <span className="text-white/40 text-xs">· 今日必修</span>
+                <span className="text-white/40 text-xs">· 今日训练</span>
               </div>
               <span className="text-[#E8432D] text-xs font-bold bg-[#E8432D]/10 border border-[#E8432D]/20 px-2 py-0.5 rounded-full">
                 D-90
@@ -338,7 +338,7 @@ export default function Home() {
             </div>
             <div className="p-4 grid grid-cols-2 gap-3">
               {[
-                { ko: "비밀노트 정복", zh: "语感秘籍", value: `${lessonsData.length} / ${lessonsData.length}`, color: "text-[#E8432D]" },
+                { ko: "감각 노트 정복", zh: "语感秘籍", value: `${lessonsData.length} / ${lessonsData.length}`, color: "text-[#E8432D]" },
                 { ko: "섀도잉 훈련도", zh: "跟读次数", value: `${Object.values(shadowingProgress).reduce((a, b) => a + b, 0)} 회`, color: "text-[#2EC4B6]" },
               ].map((stat) => (
                 <div key={stat.ko} className="bg-[#F7F4EE] rounded-lg p-3 text-center">
@@ -410,9 +410,9 @@ export default function Home() {
           {/* Tab Navigation */}
           <div className="flex flex-wrap gap-2">
             {[
-              { id: "notes" as const, ko: "원어민 비밀 노트", zh: "语感秘籍", icon: BookOpen, accent: "#C9A84C" },
-              { id: "tone" as const, ko: "톤 체인저", zh: "语气转换", icon: MessageSquare, accent: "#E8432D" },
-              { id: "eraser" as const, ko: "외국인 티 박멸", zh: "外国人味纠正", icon: Sparkles, accent: "#2EC4B6" },
+              { id: "notes" as const, ko: "원어민 감각 노트", zh: "语感秘籍", icon: BookOpen, accent: "#C9A84C" },
+              { id: "tone" as const, ko: "MZ 말투 변환기", zh: "语气转换", icon: MessageSquare, accent: "#E8432D" },
+              { id: "eraser" as const, ko: "어색한 표현 교정", zh: "外国人味纠正", icon: Sparkles, accent: "#2EC4B6" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -441,8 +441,8 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <div className="w-1 h-8 rounded-full bg-[#C9A84C]" />
                 <div>
-                  <h2 className="font-black text-xl text-[#0F0F0F]">원어민 비밀 노트</h2>
-                  <p className="text-xs text-[#999]">Native Speaker Secret Notes · 语感秘籍</p>
+                  <h2 className="font-black text-xl text-[#0F0F0F]">원어민 감각 노트</h2>
+                  <p className="text-xs text-[#999]">Native Speaker Sense Notes · 语感秘籍</p>
                 </div>
               </div>
 
@@ -693,7 +693,7 @@ export default function Home() {
           {activeTab === "tone" && (
             <div className="card-luxury rounded-xl overflow-hidden animate-fade-in-up">
               <div className="bg-[#0F0F0F] px-6 py-5">
-                <h2 className="ko-serif text-2xl font-black text-white">다채로운 톤 체인저</h2>
+                <h2 className="ko-serif text-2xl font-black text-white">MZ 말투 변환기</h2>
                 <p className="text-white/50 text-xs mt-1">多平台语气转换 · 一键变身地道网感表达</p>
               </div>
               <div className="p-6 flex flex-col gap-6">
@@ -776,12 +776,12 @@ export default function Home() {
               {/* Header */}
               <div className="card-luxury rounded-xl overflow-hidden">
                 <div className="bg-[#0F0F0F] px-6 py-5">
-                  <h2 className="ko-serif text-2xl font-black text-white">외국인 티 박멸기</h2>
-                  <p className="text-white/50 text-xs mt-1">外国人味纠正仪 · 一秒揭秘野生原民表达</p>
+                  <h2 className="ko-serif text-2xl font-black text-white">어색한 표현 교정기</h2>
+                  <p className="text-white/50 text-xs mt-1">外国人味纠正仪 · 一秒看懂真实原民表达</p>
                 </div>
                 <div className="px-6 py-4 bg-[#FFFBF0] border-b border-[#E8E5DF]">
                   <p className="text-xs text-[#666] leading-relaxed">
-                    点击你经常在教科书里见到的死板韩语，一秒揭秘韩国年轻人天天挂在嘴边的野生原民表达。
+                    点击你经常在教科书里见到的死板韩语，一秒揭秘韩国年轻人天天挂在嘴边的真实原民表达。
                   </p>
                 </div>
               </div>
@@ -848,8 +848,8 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div className="ko-serif text-2xl font-black text-[#E8432D]">한</div>
             <div>
-              <div className="font-black text-sm text-[#0F0F0F]">3개월 한국인화 훈련소</div>
-              <div className="text-xs text-[#AAA]">Korean Native Mastery · 地狱训练所</div>
+              <div className="font-black text-sm text-[#0F0F0F]">3개월 원어민 감각 훈련소</div>
+              <div className="text-xs text-[#AAA]">Korean Native Sense Lab · 몰입 훈련소</div>
             </div>
           </div>
           <div className="flex items-center gap-6">
