@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { scheduledDailyContentHandler } from "../handlers/scheduledDailyContent";
+import { koreanAIHandler } from "../handlers/koreanAI";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -32,13 +33,18 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
+
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
   registerStorageProxy(app);
   registerOAuthRoutes(app);
-  // Scheduled task handlers — MUST be registered before Vite/static fallthrough
+
+  // Scheduled task handlers
   app.post("/api/scheduled/daily-content", scheduledDailyContentHandler);
+
+  // Korean AI generation endpoint
+  app.post("/api/korean-ai", koreanAIHandler);
 
   // tRPC API
   app.use(
@@ -48,7 +54,7 @@ async function startServer() {
       createContext,
     })
   );
-  // development mode uses Vite, production mode uses static files
+
   if (process.env.NODE_ENV === "development") {
     await setupVite(app, server);
   } else {
