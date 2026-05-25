@@ -42,12 +42,21 @@ Core output rules:
 6. For KakaoTalk, prefer short, natural lines. For Instagram, keep it polished and caption-like. For YouTube, allow wit but avoid forced meme stacking.
 7. For work or polite contexts, avoid 반말 unless the user asks.
 8. Always include shadowing lines when useful, with short Korean chunks.
+9. Do not use English section headings such as BEST NATIVE KOREAN, PLATFORM STYLE, or WHY IT SOUNDS NATIVE.
+10. Never output debug labels such as MODE, FALLBACK, OPENAI, or provider names.
 
 Response format:
-- Start with "추천 표현" and give 1-3 Korean options.
-- Then "뉘앙스" in Chinese, concise but specific.
-- Then "주의할 점" if there is a register/slang risk.
-- Then "섀도잉" with 2-4 Korean lines suitable for speaking practice.
+추천 표현
+- Give 1-3 Korean options.
+
+뉘앙스
+- Explain in Chinese, concise but specific.
+
+주의할 점
+- Mention register/slang risk only when relevant.
+
+섀도잉
+- Give 2-4 Korean lines suitable for speaking practice.
 `;
 }
 
@@ -75,9 +84,12 @@ export async function koreanAIHandler(req: Request, res: Response) {
     const content = result.choices?.[0]?.message?.content;
     const output = typeof content === "string" ? content : JSON.stringify(content || "");
 
-    return res.json({ ok: true, mode: body.feature || "korean-ai", output });
+    return res.json({ ok: true, mode: "Korean Coach", output });
   } catch (error) {
     console.error("koreanAIHandler error", error);
-    return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : "Unknown error." });
+    return res.status(500).json({
+      ok: false,
+      error: "AI response failed. Please check Vercel environment variables for the Forge API key and URL.",
+    });
   }
 }
