@@ -10,6 +10,8 @@ const PROJECT_ROOT = import.meta.dirname;
 const LOG_DIR = path.join(PROJECT_ROOT, ".manus-logs");
 const MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024;
 const TRIM_TARGET_BYTES = Math.floor(MAX_LOG_SIZE_BYTES * 0.6);
+const isGitHubPagesBuild = process.env.GITHUB_ACTIONS === "true";
+const basePath = isGitHubPagesBuild ? "/hanwen-task-catalog/" : "/";
 
 type LogSource = "browserConsole" | "networkRequests" | "sessionReplay";
 
@@ -133,6 +135,7 @@ function vitePluginManusDebugCollector(): Plugin {
 const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
 export default defineConfig({
+  base: basePath,
   plugins,
   resolve: {
     alias: {
