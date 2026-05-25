@@ -38,13 +38,13 @@ const MAX_FAVORITES = 60;
 const welcomeMessage: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  meta: "AI Korean Native Engine",
-  content: "输入中文、英文或韩文，我会生成韩国人更自然会说的版本，并解释语气、语法、MZ 表达和 shadowing。",
+  meta: "AI Korean Native Sense Engine",
+  content: "输入中文、英文或韩文，我会改成韩国人更自然会说的版本，并拆解语气、语法、MZ 表达和 shadowing 练习。",
 };
 
 const features: { id: Feature; label: string; sub: string; icon: typeof MessageSquare }[] = [
   { id: "reply-generator", label: "Reply", sub: "自然韩文回复", icon: MessageSquare },
-  { id: "tone-converter", label: "Tone", sub: "韩国人语气", icon: Wand2 },
+  { id: "tone-converter", label: "Tone", sub: "韩式语气转换", icon: Wand2 },
   { id: "mz-expression", label: "MZ", sub: "网感表达", icon: Sparkles },
   { id: "shadowing-trainer", label: "Shadowing", sub: "跟读训练", icon: Mic },
   { id: "grammar-corrector", label: "Grammar", sub: "语法修正", icon: CheckCircle2 },
@@ -53,20 +53,20 @@ const features: { id: Feature; label: string; sub: string; icon: typeof MessageS
 ];
 
 const presets: Preset[] = [
-  { id: "kakao-girl", label: "韩国女生聊天", labelKr: "여자친구 톤", feature: "reply-generator", tone: "soft feminine KakaoTalk, natural but not childish", platform: "KakaoTalk", situation: "daily chat with Korean friend", starter: "我想用韩国女生自然聊天语气回复：" },
+  { id: "kakao-girl", label: "韩国女生聊天", labelKr: "여사친 톤", feature: "reply-generator", tone: "soft feminine KakaoTalk, natural but not childish", platform: "KakaoTalk", situation: "daily chat with Korean friend", starter: "我想用韩国女生自然聊天语气回复：" },
   { id: "cool-dry", label: "冷淡自然风", labelKr: "무심한 톤", feature: "tone-converter", tone: "cool and dry Korean tone, concise, not rude", platform: "Daily conversation", situation: "casual friend chat", starter: "帮我改成韩国人冷淡但自然的语气：" },
   { id: "dating", label: "暧昧恋爱回复", labelKr: "썸 톤", feature: "situational-reply", tone: "romantic but not cheesy, Korean dating chat", platform: "Dating chat", situation: "flirting / talking stage", starter: "我想回复暧昧对象：" },
   { id: "insta", label: "Instagram 留言", labelKr: "인스타 댓글", feature: "platform-mimic", tone: "friendly Instagram comment, short and natural", platform: "Instagram", situation: "Instagram comment or caption", starter: "帮我写成韩国 Instagram 风格：" },
   { id: "youtube", label: "YouTube 评论", labelKr: "유튜브 댓글", feature: "platform-mimic", tone: "funny YouTube comment, witty but not overdone", platform: "YouTube comments", situation: "Korean YouTube comment", starter: "帮我写韩国 YouTube 评论：" },
-  { id: "grammar", label: "韩文纠错", labelKr: "교정", feature: "grammar-corrector", tone: "polite but clear Korean correction coach", platform: "Daily conversation", situation: "grammar and naturalness correction", starter: "帮我修正这句韩文，让它更自然：" },
-  { id: "shadowing", label: "跟读训练", labelKr: "쉐도잉", feature: "shadowing-trainer", tone: "native Korean speaking practice", platform: "Daily conversation", situation: "shadowing and pronunciation practice", starter: "帮我生成 5 句跟读练习，主题是：" },
+  { id: "grammar", label: "韩文纠错", labelKr: "자연스러운 교정", feature: "grammar-corrector", tone: "polite but clear Korean correction coach", platform: "Daily conversation", situation: "grammar and naturalness correction", starter: "帮我修正这句韩文，让它更自然：" },
+  { id: "shadowing", label: "跟读训练", labelKr: "섀도잉", feature: "shadowing-trainer", tone: "native Korean speaking practice", platform: "Daily conversation", situation: "shadowing and pronunciation practice", starter: "帮我生成 5 句跟读练习，主题是：" },
 ];
 
 const quickExamples = [
   "昨天喝酒了，今天好累，想喝解酒汤",
   "我还想再睡一下，时间过得太快了",
   "日常生活太烦了，用韩国朋友聊天语气怎么说？",
-  "난 오히려 시간이넘빨어",
+  "난 오히려 시간이 너무 빨라",
   "想回复对方：你是不是身体管理得很好？",
 ];
 
@@ -182,7 +182,7 @@ export default function AIKoreanEnginePage() {
     <div className="min-h-screen bg-[#FDFCF9] text-[#111]">
       <header className="sticky top-0 z-30 border-b border-[#E8E5DF] bg-[#0F0F0F]/95 text-white backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
-          <div><div className="mb-1 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] font-black text-white/60"><Bot className="h-3.5 w-3.5 text-[#C9A84C]" />Private Korean AI OS</div><h1 className="text-xl font-black leading-tight md:text-2xl">AI 한국어 네이티브 답장 생성기</h1><p className="mt-1 text-xs font-bold text-white/45">生成 · 听 · 跟读 · 收藏 · 反复沉浸</p></div>
+          <div><div className="mb-1 inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-[11px] font-black text-white/60"><Bot className="h-3.5 w-3.5 text-[#C9A84C]" />Private Korean Sense OS</div><h1 className="text-xl font-black leading-tight md:text-2xl">AI 한국어 원어민 감각 생성기</h1><p className="mt-1 text-xs font-bold text-white/45">生成 · 听 · 跟读 · 收藏 · 反复沉浸</p></div>
           <div className="flex flex-wrap gap-2"><a href="/korean-genz" className="rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10">GenZ Library</a><button onClick={newChat} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10"><RefreshCw className="h-3.5 w-3.5" />New Chat</button><button onClick={clearMemory} className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-3 py-2 text-xs font-black text-white/70 hover:bg-white/10"><Trash2 className="h-3.5 w-3.5" />Clear</button></div>
         </div>
       </header>
@@ -200,7 +200,7 @@ export default function AIKoreanEnginePage() {
 
         <section className="flex min-h-[72vh] flex-col rounded-3xl border-2 border-[#1C1A17] bg-white shadow-[6px_6px_0_#1C1A17]">
           <div className="border-b border-[#E8E5DF] p-4"><div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"><div><div className="text-xs font-black uppercase tracking-widest text-[#E8432D]">Current Mode</div><h2 className="mt-1 text-lg font-black">{activeFeature.label} · {platform}</h2></div><div className="rounded-2xl bg-[#F5F2EB] px-3 py-2 text-xs font-black text-neutral-500">{situation}</div></div></div>
-          <div className="flex-1 space-y-4 overflow-y-auto p-4 md:p-6">{messages.map((message) => <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[92%] rounded-3xl p-4 md:max-w-[78%] ${message.role === "user" ? "bg-[#E8432D] text-white" : "border border-[#E8E5DF] bg-[#FDFCF9] text-[#111]"}`}>{message.meta && <div className={`mb-2 text-[10px] font-black uppercase tracking-widest ${message.role === "user" ? "text-white/55" : "text-neutral-400"}`}>{message.meta}</div>}<pre className="whitespace-pre-wrap break-words font-sans text-sm font-bold leading-7">{message.content}</pre>{message.role === "assistant" && message.content && <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => copyMessage(message)} className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F0F0F] px-3 py-1.5 text-[11px] font-black text-white hover:bg-[#242424]"><Copy className="h-3 w-3" />{copiedId === message.id ? "Copied" : "Copy"}</button><button onClick={() => speakText(message.content, message.id, 0.9)} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-black ${speakingId === message.id ? "bg-[#E8432D] text-white" : "bg-[#0F0F0F] text-white hover:bg-[#242424]"}`}><Volume2 className="h-3 w-3" />{speakingId === message.id ? "Speaking" : "Listen"}</button><button onClick={() => toggleFavorite(message)} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-black ${favoriteIds.has(message.id) ? "bg-[#E8432D] text-white" : "bg-[#F5F2EB] text-neutral-600 hover:bg-[#EFE9DD]"}`}><Heart className="h-3 w-3" />{favoriteIds.has(message.id) ? "Saved" : "Save"}</button></div>}</div></div>)}{loading && <div className="flex justify-start"><div className="inline-flex items-center gap-3 rounded-3xl border border-[#E8E5DF] bg-[#FDFCF9] p-4 text-sm font-bold text-neutral-500"><Loader2 className="h-4 w-4 animate-spin text-[#E8432D]" />Generating native Korean response...</div></div>}<div ref={bottomRef} /></div>
+          <div className="flex-1 space-y-4 overflow-y-auto p-4 md:p-6">{messages.map((message) => <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[92%] rounded-3xl p-4 md:max-w-[78%] ${message.role === "user" ? "bg-[#E8432D] text-white" : "border border-[#E8E5DF] bg-[#FDFCF9] text-[#111]"}`}>{message.meta && <div className={`mb-2 text-[10px] font-black uppercase tracking-widest ${message.role === "user" ? "text-white/55" : "text-neutral-400"}`}>{message.meta}</div>}<pre className="whitespace-pre-wrap break-words font-sans text-sm font-bold leading-7">{message.content}</pre>{message.role === "assistant" && message.content && <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => copyMessage(message)} className="inline-flex items-center gap-1.5 rounded-xl bg-[#0F0F0F] px-3 py-1.5 text-[11px] font-black text-white hover:bg-[#242424]"><Copy className="h-3 w-3" />{copiedId === message.id ? "Copied" : "Copy"}</button><button onClick={() => speakText(message.content, message.id, 0.9)} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-black ${speakingId === message.id ? "bg-[#E8432D] text-white" : "bg-[#0F0F0F] text-white hover:bg-[#242424]"}`}><Volume2 className="h-3 w-3" />{speakingId === message.id ? "Speaking" : "Listen"}</button><button onClick={() => toggleFavorite(message)} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-black ${favoriteIds.has(message.id) ? "bg-[#E8432D] text-white" : "bg-[#F5F2EB] text-neutral-600 hover:bg-[#EFE9DD]"}`}><Heart className="h-3 w-3" />{favoriteIds.has(message.id) ? "Saved" : "Save"}</button></div>}</div></div>)}{loading && <div className="flex justify-start"><div className="inline-flex items-center gap-3 rounded-3xl border border-[#E8E5DF] bg-[#FDFCF9] p-4 text-sm font-bold text-neutral-500"><Loader2 className="h-4 w-4 animate-spin text-[#E8432D]" />Generating natural Korean response...</div></div>}<div ref={bottomRef} /></div>
           <div className="border-t border-[#E8E5DF] bg-[#FFFDF9] p-4"><div className="mb-3 flex flex-wrap gap-2">{quickExamples.map((example) => <button key={example} onClick={() => setInput(example)} className="rounded-full border border-[#E8E5DF] bg-white px-3 py-1.5 text-[11px] font-bold text-neutral-500 hover:border-[#E8432D] hover:text-[#E8432D]">{example}</button>)}</div><div className="flex items-end gap-3"><textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); generate(); } }} rows={3} maxLength={1200} placeholder="输入你想表达的中文/英文/韩文...  Ctrl/⌘ + Enter 发送" className="min-h-[84px] flex-1 resize-y rounded-2xl border-2 border-[#1C1A17] bg-white p-4 text-sm font-bold leading-6 outline-none focus:border-[#E8432D]" /><button onClick={() => generate()} disabled={loading || !input.trim()} className="inline-flex h-[56px] items-center gap-2 rounded-2xl bg-[#E8432D] px-5 text-sm font-black text-white transition hover:bg-[#cf3523] disabled:cursor-not-allowed disabled:opacity-50">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}<span className="hidden md:inline">Send</span></button></div><div className="mt-2 text-right text-[10px] font-bold text-neutral-400">{input.length}/1200 · Saved locally on this device</div></div>
         </section>
       </main>
