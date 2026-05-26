@@ -1,4 +1,5 @@
 import { BookOpen, MessageSquare, Sparkles, Mic, Layers, Search } from "lucide-react";
+import { Link } from "wouter";
 
 const missions = [
   {
@@ -84,9 +85,8 @@ export default function KoreanGenzPage() {
             将韩文任务库、MZ 回复模板、沉浸式精读、语气转换和 shadowing 内容合并成一个统一入口。
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="/daily" className="rounded-xl bg-[#E8432D] px-4 py-2 text-sm font-black text-white">每日内容</a>
-            <a href="/immersion-updates" className="rounded-xl border border-white/20 px-4 py-2 text-sm font-black text-white/80">沉浸更新</a>
-            <a href="/files" className="rounded-xl border border-white/20 px-4 py-2 text-sm font-black text-white/80">资料库</a>
+            <Link to="/routines" className="rounded-xl bg-[#E8432D] px-4 py-2 text-sm font-black text-white">每日内容 & 资料库</Link>
+            <Link to="/" className="rounded-xl border border-white/20 px-4 py-2 text-sm font-black text-white/80">AI 生成器</Link>
           </div>
         </div>
       </header>
